@@ -1,7 +1,7 @@
 import os
 import glob
 
-from file_io import read_image, write_properties_to_file
+from file_io import read_image, write_properties_to_file, find_images
 
 def main():
     images = find_images()
@@ -16,22 +16,7 @@ def main():
     write_properties_to_file(all_props)
     
     
-def find_images():
-    """Find all images the tool can handle in the current directory"""
-    
-    img_files = []
-    jpegs = glob.glob("**/*.jpg")
-    jpegs.extend(glob.glob("**/*.jpeg"))
-    
-    pngs = glob.glob("**/*.png")
-    
-    img_files.extend(jpegs)
-    img_files.extend(pngs)
-    
-    if len(img_files) == 0:
-        raise FileNotFoundError(f"No images found in {os.getcwd()}")
-        
-    return img_files
+
 
 
     
