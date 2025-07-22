@@ -3,6 +3,7 @@ import skimage
 import pandas as pd
 import glob
 
+
 def find_images():
     """Find all images the tool can handle in the current directory"""
     
@@ -22,8 +23,21 @@ def read_image(image_path):
     """Read an image from file to ndarray"""
     
     project_name = os.path.basename(image_path).split(".")[0]
-    return skimage.io.imread(image_path), project_name
-    
+    return skimage.io.imread(image_path), project_name #we want to get this output as input for the labelling function
+
+def label_colonies(*args): #we want to be able to use the image name as the input
+    """Prepare your image for processing"""
+    from skimage.color import rgb2gray #should these guys go at the very top of this doc???
+    import matplotlib.pyplot as plt
+    from skimage.restoration import rolling_ball
+    for values in args:
+    gluc_grey = rgb2gray(arr) #change to greyscale
+
+    plt.imshow(gluc_grey, cmap=plt.cm.grey) #plt.cm.grey uses greyscale instead of greenscale for visualization - the RBG array values are still greyscale
+
+    rolled_da_ball = rolling_ball(gluc_grey)
+    plt.imshow(rolled_da_ball)
+
 
 
 def write_properties_to_file(props:list, outf="results.tsv"):

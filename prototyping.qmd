@@ -66,12 +66,13 @@ arr
 ```{python}
 
 from skimage.color import rgb2gray
+import matplotlib.pyplot as plt
+from skimage.restoration import rolling_ball
+
 gluc_grey = rgb2gray(arr) #change to greyscale
 
-import matplotlib.pyplot as plt
 plt.imshow(gluc_grey, cmap=plt.cm.grey) #plt.cm.grey uses greyscale instead of greenscale for visualization - the RBG array values are still greyscale
 
-from skimage.restoration import rolling_ball
 rolled_da_ball = rolling_ball(gluc_grey)
 plt.imshow(rolled_da_ball)
 ```
