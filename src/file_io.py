@@ -2,8 +2,8 @@
 import os
 import glob
 # third-party libraries (and sort them a bit "logically")
+import pandas as pd
 import skimage
-
 
 def find_images():
     """Find all images the tool can handle in the current directory"""
