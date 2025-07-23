@@ -46,25 +46,23 @@ plt.tight_layout()
 plt.show()
 
 
-
 ```
 
 ```{python}
 
-from src.file_io import read_image, find_images
+from src.file_io import read_image, find_images, label_colonies
 
 our_images = find_images()
-
 test_image = our_images[0]
-
 arr, fname = read_image(test_image)
 
-arr
+label_colonies(arr)
 
 ```
 
 ```{python}
 
+#this has been added to the function
 from skimage.color import rgb2gray
 import matplotlib.pyplot as plt
 from skimage.restoration import rolling_ball
@@ -78,10 +76,13 @@ plt.imshow(rolled_da_ball)
 ```
 
 ```{python}
+
+#so has this 
 from skimage.filters import threshold_otsu 
+from skimage.morphology import closing, footprint_rectangle
+
 thresh = threshold_otsu(rolled_da_ball) #calc threshold for cutoff for background & foreground 
 
-from skimage.morphology import closing, footprint_rectangle
 bw = closing(rolled_da_ball > thresh, #fill in the gaps
 footprint_rectangle((3,3))) #change size of footprint area 
 
@@ -101,6 +102,7 @@ plt.imshow(image_label_overlay)
 
 ```{python}
 
+#and this
 import matplotlib.patches as mpatches 
 
 fig, ax = plt.subplots(figsize=(10,6))
