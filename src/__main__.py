@@ -1,5 +1,5 @@
-from file_io import read_image, write_properties_to_file, find_images, preprocess_arr, label_colonies
-
+from file_io import read_image, write_properties_to_file, find_images
+from image_processing import preprocess_arr, label_colonies, get_selected_properties
 
 def main():
     images = find_images()
@@ -11,10 +11,12 @@ def main():
     for image in images:
         im_arr, project = read_image(image)
         processed = preprocess_arr(im_arr)
-        labeled_image, properties = label_colonies(processed)
+        labeled_image, region_props = label_colonies(processed)
         labeled_image.savefig(f"{project}_labeled.png")
+        properties = get_selected_properties(region_props)
         properties["project"] = project
         all_props.append(properties)
+    
     if len(all_props) == 0:
         raise ValueError("No properties found to write to file.")
     
