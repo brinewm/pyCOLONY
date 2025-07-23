@@ -1,3 +1,5 @@
+import os
+import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,13 +15,21 @@ from skimage.measure import label, regionprops
 MIN_AREA_LABEL = 200  # minimum area of a colony to be labelled
 
 
-def preprocess_arr(arr: np.ndarray):
+def preprocess_arr(arr: np.ndarray, debug=False):
     """Turns the image array to greyscale does a rolling ball filter and does some thresholding"""
     grey = rgb2gray(arr)
     ball = rolling_ball(grey)
     thresh = threshold_otsu(ball)
     bw = closing(ball < thresh, footprint=footprint_rectangle((3, 3)))
     cleared = clear_border(bw)
+    
+    if debug:
+        os.makedirs("debug", exist_ok=True)
+        today = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+        plt.imsave(f"{today}_preprocess_grey.png", grey, cmap='gray')
+        plt.imsave(f"{today}_preprocess_ball.png", ball, cmap='gray')
+        plt.imsave(f"{today}_preprocess_bw.png", bw, cmap='gray')
+        plt.imsave(f"{today}_preprocess_cleared.png", cleared, cmap='gray')
 
     return cleared
 

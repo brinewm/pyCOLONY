@@ -10,7 +10,7 @@ def main():
     all_props = []
     for image in images:
         im_arr, project = read_image(image)
-        processed = preprocess_arr(im_arr)
+        processed = preprocess_arr(im_arr, debug=True)
         labeled_image, region_props = label_colonies(im_arr, processed)
         labeled_image.savefig(f"{project}_labeled.png")
         properties = get_selected_properties(region_props)
