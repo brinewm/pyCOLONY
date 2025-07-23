@@ -1,18 +1,19 @@
-from ast import arg
+# base python libraries
 import os
-import skimage
-import numpy as np
-from skimage.color import rgb2gray, label2rgb 
-import pandas as pd
 import glob
+# third-party libraries (and sort them a bit "logically")
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches 
+import skimage
+from skimage.color import rgb2gray, label2rgb 
 from skimage.restoration import rolling_ball
 from skimage.filters import threshold_otsu 
 from skimage.morphology import closing, footprint_rectangle
 from skimage.measure import label, regionprops
-import matplotlib.patches as mpatches 
 
-
+MIN_AREA_LABEL = 100 #minimum area of a colony to be labelled
 
 def find_images():
     """Find all images the tool can handle in the current directory"""
@@ -29,57 +30,50 @@ def find_images():
         
     return img_files
 
-def read_image(image_path):
+def read_image(image_path:str):
     """Read an image from file to ndarray"""
     
     project_name = os.path.basename(image_path).split(".")[0]
     return skimage.io.imread(image_path), project_name #we want to get this output as input for the labelling function
 
-def label_colonies(a): #we want to be able to use the image name(s) as the input
-    """Prepare your image for processing"""
-    output_grey = rgb2gray(a) #change to greyscale
+def preprocess_arr(arr:np.ndarray):
+    """Turns the image array to greyscale does a rolling ball filter and does some thresholding"""
+    grey = rgb2gray(arr)
+    ball = rolling_ball(grey)
+    thresh = threshold_otsu(ball)
+    bw = closing(ball < thresh, footprint=footprint_rectangle((3, 3)))
+    
+    return bw
 
-    plt.imshow(output_grey, cmap=plt.cm.grey) #plt.cm.grey uses greyscale instead of greenscale for visualization - the RBG array values are still greyscale
-
-    ball = rolling_ball(output_grey)
-    plt.imshow(ball)
-    thresh = threshold_otsu(ball) #calc threshold for cutoff for background & foreground 
-
-    bw = closing(ball > thresh, #fill in the gaps
-    footprint_rectangle((3,3))) #change size of footprint area 
-
-    bw = np.invert(bw)
-    plt.imshow(bw)
-    label_colonies = label(bw)
+def label_colonies(a:np.ndarray): #we want to be able to use the image name(s) as the input
+    """Label a processed image array and return the labelled image and label data"""
+    
+    label_colonies = label(a)
     image_label_overlay = label2rgb(label_colonies,
     image=a, bg_label=0)
 
-    plt.imshow(image_label_overlay)
-    
     fig, ax = plt.subplots(figsize=(10,6))
     ax.imshow(image_label_overlay)
 
-    for region in regionprops(label_colonies):
-        if region.area >= 100:
-            minr, minc, maxr, maxc = region.bbox
-            rect = mpatches.Rectangle(
-             (minc, minr),
-                maxc-minc,
-                maxr - minr,
-                fill = False,
-                edgecolor = 'pink', #change to pink :)
-                linewidth = 2,
-            )
-            ax.add_patch(rect)
+    region_properties = regionprops(label_colonies)
+    region_properties = [region for region in region_properties if region.area >= MIN_AREA_LABEL] #filter out small regions
+
+    for region in region_properties:
+        minr, minc, maxr, maxc = region.bbox
+        rect = mpatches.Rectangle(
+            (minc, minr),
+            maxc-minc,
+            maxr - minr,
+            fill = False,
+            edgecolor = 'pink', #change to pink :)
+            linewidth = 2,
+        )
+        ax.add_patch(rect)
 
     ax.set_axis_off()
-    plt.tight_layout()
-    plt.show()
 
-    return image_label_overlay, ball, rect #i'm not sure what else atm we need
+    return fig, pd.DataFrame(region_properties) #we return here the figure (which we'll want to save to file and the properties of our labels, which we'll also want to save to a dataframe -> xlsx)
     
-
-
 
 def write_properties_to_file(props:list, outf="results.tsv"):
     
